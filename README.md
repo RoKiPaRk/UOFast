@@ -1,6 +1,6 @@
 # Installation
 
-UOFast is a UOPY based restful service which pools UOPY connections and accepts GET/PUT type requests to U2 databases. Its based on FastAPI, gsocketpool, pydantic and uopy. This is an opensource sample, to demonstrate the capabilities of UOPY connectivity using a restful service.
+UOFast is a U2 UOPY based restful service which pools U2 UOPY connections and accepts GET/PUT type requests to U2 databases. Its based on FastAPI, gsocketpool, pydantic and uopy. This is an opensource sample, to demonstrate the capabilities of UOPY connectivity using a restful service.
 
 Check Python installation - Since uofast is based on python, it need python version 3.9.1 and above to function.
 
