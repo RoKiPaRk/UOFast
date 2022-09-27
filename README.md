@@ -8,15 +8,16 @@ Check Python installation - Since uofast is based on python, it need python vers
 
 \> _Python -V_
 
-If the version installed on the machine is \> 3.9.1, then skip the next step.
+If the version installed on the machine is > 3.9.1, then skip to step 3.
+	Tip : If you have an Older version of Python already installed, please remove that from the PATH in your environment and leave the new one in.
 
-1. **How to install python?**
+2. **How to install python?**
 
 Please download python 3.9.1 from the below site.
 
 [https://www.python.org/downloads/release/python-391/](https://www.python.org/downloads/release/python-391/%20%20)
 
-1. **Install required packages**
+3. **Install required packages**
 
 The below step will install all the required "include" packages for uofast.
 
