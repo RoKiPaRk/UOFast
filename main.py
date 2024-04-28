@@ -5,17 +5,18 @@
 
 
 from ast import Str
+from socket import socket
 from fastapi import FastAPI, HTTPException
 from typing import List, Optional
 from pydantic import BaseModel
+from app.UOFastDataArray import *
 from gsocketpool import Pool
-from UOFastDataArray import * 
+from app.UOFastDataArray import * 
 import json
 import uopy
 import UOFastConfig
 from gsocketpool.connection import m_connection
 from fastapi.openapi.utils import get_openapi
-
 #load UOFast.cfg params
 configparams = UOFastConfig.uofastconfiguration()
 
@@ -63,6 +64,51 @@ def uofast_process(multi_svr_object : multi_svr_object):
         #FastMVApi = None
 
     return {'UOFast': UOFast}
+
+@app.post('/UOFile/{FileName}')
+def uofast_file_process(FileName :str):
+    print("multi_svr_object",FileName)
+
+    try:
+        print("Params",FileName)
+        #multi_svr_object.ProcessParams = json.loads(multi_svr_object.ProcessParams)
+        UOFast = __uogetfile(FileName)
+    except Exception as e:
+        raise HTTPException(status_code=418, detail=str(e.detail))
+        #FastMVApi = None
+
+    return UOFast
+
+@app.post('/UODFile')
+def uofast_file_process(FileName :file_dict_obj):
+    file_name=FileName.file_name
+    file_dict=FileName.dict_fields
+    print("UODFile ",file_name)
+    print("dict = " + str(file_dict))
+
+    try:
+        print("Params",str(FileName))
+        #multi_svr_object.ProcessParams = json.loads(multi_svr_object.ProcessParams)
+        UOFast = __uogetfilewithdict(FileName)
+    except Exception as e:
+        raise HTTPException(status_code=418, detail=str(e.detail))
+        #FastMVApi = None
+
+    return UOFast
+
+@app.get('/UOFile/{FileName}')
+def uofast_file_process(FileName :str):
+    print("multi_svr_object",FileName)
+
+    try:
+        print("Params",FileName)
+        #multi_svr_object.ProcessParams = json.loads(multi_svr_object.ProcessParams)
+        UOFast = __uogetfile(FileName)
+    except Exception as e:
+        raise HTTPException(status_code=418, detail=str(e.detail))
+        #FastMVApi = None
+
+    return UOFast
 
 
 def custom_openapi():
@@ -116,3 +162,77 @@ def _callsubroutine(Processname, Processparams):
         raise HTTPException(status_code=418, detail=str(e.detail))   
     
     return mstring
+
+def __uogetfile(FileName : str):
+    print("Call _uogetfile",str(FileName))
+    filerecords = []
+    try:
+        with pool.connection() as conn:
+            subcount=0
+            errVars=""
+            conn.logger_info("BEGIN Reading file ..." + FileName)
+
+            ### Call get file routine
+            ###
+            uofile = uopy.File(FileName,None,session=conn.socket)
+            id_list = uopy.List(0,session=conn.socket).select(uofile).read_list()
+            
+            #filerecords = uofile.read_records(id_list)[3]
+            for x in id_list:
+                rec = str(uofile.read(x))
+                mstring = mdatarecord()
+                mstring.populateArray(rec)
+                print("Reading record if from file " + FileName, str(x))
+                mstring.key_id = str(x)
+                filerecords.append(mstring)
+             #print("errors returned ", str(errVars))            
+        
+            conn.logger_info("END Reading file ..." + FileName)
+         
+    except Exception as e:
+        retVars = ""
+        print("Error calling FileRead " + FileName, str(e))
+        raise HTTPException(status_code=418, detail=str(e.detail))   
+    
+    
+    return filerecords
+
+def __uogetfilewithdict(FileName : file_dict_obj):
+    print("Call _uogetfile",str(FileName.file_name))
+    
+    file_name=FileName.file_name
+    file_dict=FileName.dict_fields
+
+    filerecords = []
+    try:
+        with pool.connection() as conn:
+            subcount=0
+            errVars=""
+            conn.logger_info("BEGIN Reading file ..." + file_name)
+            conn.logger_info("Processing dict " + str(file_dict))
+
+            ### Call get file routine
+            ###
+            uofile = uopy.File(file_name,None,session=conn.socket)
+            id_list = uopy.List(0,session=conn.socket).select(uofile).read_list()
+            
+            #filerecords = uofile.read_records(id_list)[3]
+            for x in id_list:
+                rec = uofile.read_named_fields(x,file_dict)
+                rec_list = rec[3][0]
+                my_dict = dict(zip(file_dict, rec_list))
+                my_dict['_recID'] = str(x)
+                my_dict['_COLLECTION'] = file_name
+                print("Reading record if from file " + file_name, str(x))
+                
+                filerecords.append(my_dict)
+             
+            conn.logger_info("END Reading file ..." + file_name)
+         
+    except Exception as e:
+        retVars = ""
+        print("Error calling FileRead " + FileName, str(e))
+        raise HTTPException(status_code=418, detail=str(e.detail))   
+    
+    
+    return filerecords
