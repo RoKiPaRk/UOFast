@@ -1,3 +1,7 @@
+name: Publish package to PyPI
+on:
+  release:
+    types: [published]
 jobs:
   pypi-publish:
     name: Upload release to PyPI
@@ -11,6 +15,6 @@ jobs:
     # retrieve your distributions here
     - name: Publish
       uses: pypa/gh-action-pypi-publish@v1.5.0
-       with:
+      with:
          user: __token__
          password: ${{ secrets.PYPI_KEY }}
